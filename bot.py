@@ -17,6 +17,14 @@ from vendeeglobe import (
 from vendeeglobe.utils import distance_on_surface
 
 
+
+class Fork:
+    def __init__(self, opt1, opt2):
+        self.opt1 = opt1
+        self.opt2 = opt2
+        self.selected = None
+        self.reached = False
+
 class Bot:
     """
     This is the ship-controlling bot that will be instantiated for the competition.
@@ -25,17 +33,26 @@ class Bot:
     def __init__(self):
         self.team = "Galeon"  # This is your team name
         # This is the course that the ship has to follow
-        self.adventure_time = 0
+        fork_1 = Fork(
+            opt1 = [
+                Checkpoint(21.210306994611223, -68.04859989857972, 20),
+                Checkpoint(20.065931127231643, -74.1481107738384, 20),
+                Checkpoint(9.506355070065034, -79.82362863091052, 20),
+                Checkpoint(6.639683040069888, -78.90522764508958, 20),
+                Checkpoint(6.7870862783949715, -80.8608611956101, 20),
+                Checkpoint(2.806318, -168.943864, 50.0),
+            ],
+            opt2 = [
+                Checkpoint(latitude=43.797109, longitude=-11.264905, radius=50),
+                Checkpoint(longitude=-29.908577, latitude=17.999811, radius=50),
+                Checkpoint(latitude=-11.441808, longitude=-29.660252, radius=50),
+                Checkpoint(longitude=-63.240264, latitude=-61.025125, radius=50),
+                Checkpoint(2.806318, -168.943864, 50.0),
+            ]
+        )
         self.course = [
-            Checkpoint(21.210306994611223, -68.04859989857972, 5),
-            Checkpoint(20.065931127231643, -74.1481107738384, 5),
-            Checkpoint(9.506355070065034, -80.02362863091052, 5),
-            Checkpoint(6.639683040069888, -78.90522764508958, 5),
-            Checkpoint(6.7870862783949715, -80.8608611956101, 5),
-            Checkpoint(6.7870862783949715, -80.8608611956101, 5),
-            # first point
-            Checkpoint(2.806318, -168.943864, 1950.0),
-            Checkpoint(2.2614688264555594, 173.04590528139283, 5),
+            fork_1,
+            # Checkpoint(2.2614688264555594, 173.04590528139283, 5),
             # first after pacific
             Checkpoint(-0.0921654372694112, 132.45402991787185, 5),
             Checkpoint(-1.0078759837387682, 129.26939150280288, 5),
@@ -136,6 +153,19 @@ class Bot:
             if ch.reached:
                 continue
 
+            if isinstance(ch, Fork):
+                if ch.selected is None:
+                    time1 = time_to_get_to_fork(forecast, ch.opt1, latitude=latitude, longitude=longitude)
+                    time2 = time_to_get_to_fork(forecast, ch.opt2, latitude=latitude, longitude=longitude)
+                    print(time1, time2)
+                    if time1 < time2:
+                        ch.selected = ch.opt1
+                    else:
+                        ch.selected = ch.opt2
+                for ch in ch.selected:
+                    if ch.reached:
+                        continue
+                    break
 
             # Compute the distance to the checkpoint
             dist = distance_on_surface(
@@ -160,5 +190,144 @@ class Bot:
 
 
             instructions.location = Location(longitude=ch.longitude, latitude=ch.latitude)
+            # lat_range = np.arange(latitude, ch.latitude, ((latitude<ch.latitude)*2-1)*0.1)
+            # long_range = np.arange(latitude, ch.latitude, ((longitude<ch.longitude)*2-1)*0.1)
+            # lat_long_combinations = np.array(np.meshgrid(lat_range, long_range)).T.reshape(-1, 2)
+
+            # # latitudes = lat_long_combinations[:, 0]
+            # # longitudes = lat_long_combinations[:, 1]
+            # sea_map = world_map(latitudes=lat_long_combinations[:,0], longitudes=lat_long_combinations[:,1])
+            # # forecast_map = forecast(latitudes=latitudes, longitudes=longitudes, times=1)
+            # # horizontal_wind_speed = forecast_map[0]
+            # # vertical_wind_speed = forecast_map[1]
+            # # calculate vector of wind speed contribution for every point in sea_map if ship is moving towards checkpoint
+            # # wind_speed_match = 
+
+
+            # # joined_map = np.multiply(df.wind_in_direction_to_ch.values, sea_map)
+            # sea_map_2d = sea_map.reshape(len(lat_range), len(long_range))
+            # wind_forecast = forecast(latitudes=lat_long_combinations[:,0], longitudes=lat_long_combinations[:,1], times=1)
+            # wind_map_2d_horizontal = wind_forecast[0].reshape(len(lat_range), len(long_range))
+            # wind_map_2d_vertical = wind_forecast[1].reshape(len(lat_range), len(long_range))
+
+
+            
+            # import ipdb; ipdb.set_trace()
+            # implement weighted  A* algorithm to find the best path to the checkpoint 
+            # and give lat long of the point where to go first
+            # def find_next_point_using_eighted_A_star(sea_map_2d, ch):
+            #     import numpy as np
+            
+
+
+            # point = a_star_search(sea_map_2d, ch)
+            
+            # LON, LAT = np.meshgrid(long_range, lat_range)
+            # plt.figure(figsize=(10, 6))
+            # plt.pcolormesh(LON, LAT, sea_map_2d, cmap='coolwarm', shading='auto')
+            # plt.colorbar(label='Sea (1) vs Land (0)')
+            # plt.xlabel('Longitude')
+            # plt.ylabel('Latitude')
+            # plt.title('Sea and Land Map')
+            # save to file
+            # import ipdb; ipdb.set_trace()
+            # plt.savefig('sea_map.png')
+            # plt.show()
+            # import ipdb; ipdb.set_trace()
+
+            # plot sea_map based on axis of latitudes and longitudes
+
+            # create a small map from current position to the checkpoint
+            # map = world_map(latitudes=[latitude, ch.latitude], longitudes=[longitude, ch.longitude])
+            # # create map of forecast
+            # forecast_map = world_map(latitudes=current_position_forecast[0], longitudes=current_position_forecast[1])
+            # # multiply both map and forecast_map, replasing map 0-s with nans
+            # joined_map = np.multiply(map, forecast_map)
+            # # find the most optimal heading based on the map
+            # import ipdb; ipdb.set_trace()
+
+            
             break
+
         return instructions
+
+def time_to_get_to_fork(forecast, fork, longitude, latitude):
+
+    if len(fork) == 0:
+        return 0
+    next_point = fork[0]
+    mid_point = (latitude + next_point.latitude) / 2, (longitude + next_point.longitude) / 2
+    distance = distance_on_surface(
+        longitude1=longitude,
+        latitude1=latitude,
+        longitude2=next_point.longitude,
+        latitude2=next_point.latitude,
+    )
+    # normalised vector from current position to next point
+    vector = (next_point.longitude - longitude) / distance, (next_point.latitude - latitude) / distance
+    current_position_forecast = forecast(
+        latitudes=mid_point[0], longitudes=mid_point[1], times=0
+    )
+    speed = abs(vector[0]*current_position_forecast[0]) + abs(vector[1]*current_position_forecast[1])
+    # calculate speed based on wind speed vector and current/next location
+    time = distance / speed
+    time += time_to_get_to_fork(forecast, fork[1:], next_point.longitude, next_point.latitude)
+    return time
+
+# def heuristic(a, b):
+#     # Manhattan distance on a square grid
+#     return abs(a[0] - b[0]) + abs(a[1] - b[1])
+
+# def wind_impact(current, neighbor, wind_map_2d_horizontal, wind_map_2d_vertical):
+#     dx = neighbor[0] - current[0]
+#     dy = neighbor[1] - current[1]
+#     wind_horizontal_impact = wind_map_2d_horizontal[current[0], current[1]] * dy
+#     wind_vertical_impact = wind_map_2d_vertical[current[0], current[1]] * dx
+#     # Accumulate wind impact positively, assuming that going against the wind increases cost
+#     return abs(wind_horizontal_impact) + abs(wind_vertical_impact)
+
+
+
+# def a_star_search(sea_map_2d, wind_map_2d_horizontal, wind_map_2d_vertical):
+#     start = (0, 0)  # Start position is always (0, 0)
+#     goal = (sea_map_2d.shape[0] - 1, sea_map_2d.shape[1] - 1)  # Goal is the last element in the map
+#     neighbors = [(0, 1), (1, 0), (0, -1), (-1, 0)]  # 4-way movement
+#     close_set = set()
+#     came_from = {}
+#     gscore = {start: 0}
+#     fscore = {start: heuristic(start, goal)}
+#     open_set = [start]
+
+#     while open_set:
+#         current = min(open_set, key=lambda x: fscore.get(x, np.inf))
+#         if current == goal:
+#             data = []
+#             while current in came_from:
+#                 data.append(current)
+#                 current = came_from[current]
+#             return data[::-1]
+
+#         open_set.remove(current)
+#         close_set.add(current)
+#         for i, j in neighbors:
+#             neighbor = current[0] + i, current[1] + j
+#             if 0 <= neighbor[0] < sea_map_2d.shape[0] and 0 <= neighbor[1] < sea_map_2d.shape[1]:
+#                 if sea_map_2d[int(neighbor[0]), int(neighbor[1])] == 0:  # Assuming 1 is non-traversable
+#                     continue
+#             else:
+#                 continue  # Out of bounds
+
+#             wind_cost = wind_impact(current, neighbor, wind_map_2d_horizontal, wind_map_2d_vertical)
+#             tentative_g_score = gscore[current] + 1 + wind_cost
+
+#             if neighbor in close_set and tentative_g_score >= gscore.get(neighbor, np.inf):
+#                 continue
+
+#             if tentative_g_score < gscore.get(neighbor, np.inf) or neighbor not in [i for i in open_set]:
+#                 came_from[neighbor] = current
+#                 gscore[neighbor] = tentative_g_score
+#                 fscore[neighbor] = gscore[neighbor] + heuristic(neighbor, goal)
+#                 if neighbor not in open_set:
+#                     open_set.append(neighbor)
+
+#     return False
