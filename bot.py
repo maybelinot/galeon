@@ -52,6 +52,7 @@ class Bot:
         # -3.138329964437004, 127.38264116663935
         fork2 = Fork(
             opt1 = [
+                Checkpoint(-1.1836080996629172, 149.57540236294378,5),
                 Checkpoint(-0.0921654372694112, 132.45402991787185, 5),
                 Checkpoint(-1.0078759837387682, 129.26939150280288, 5),
                 Checkpoint(-2.9038261689957188, 127.38564116663935, 5),
@@ -63,7 +64,7 @@ class Bot:
             ],
             opt2 = [
                 Checkpoint(-5.806318, -185.943864, 5.0),
-                Checkpoint(latitude=-62.052286, longitude=169.214572, radius=50.0),
+                Checkpoint(latitude=-62.052286, longitude=155.214572, radius=50.0),
                 # second point
                 Checkpoint(-5.66898412312321, 77.6746941312312, 50),
             ]
